@@ -19,6 +19,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Created by artur on 2015-02-02.
  */
@@ -79,6 +82,9 @@ public class JacksonGenerator extends AnAction {
             if (!project.isInitialized()) {
                 return;
             }
+            if (!actionParnetDirectory.isDirectory()) {
+                actionParnetDirectory = actionParnetDirectory.getParent();
+            }
             final PsiDirectory directory = PsiManager.getInstance(project).findDirectory(actionParnetDirectory);
             PsiPackage pkg = findTargetPackage(directory);
 
@@ -93,7 +99,7 @@ public class JacksonGenerator extends AnAction {
 
     }
 
-    private void generateFiles(Project project, String jsonString, String jacksonClassName, String packageName, final PsiDirectory directory) {
+    private void generateFiles(final Project project, String jsonString, String jacksonClassName, String packageName, final PsiDirectory directory) {
         StringBuilder body = new StringBuilder("package ")
                 .append(packageName)
                 .append(";\n")
@@ -101,8 +107,8 @@ public class JacksonGenerator extends AnAction {
         JSONObject rootJO = new JSONObject(jsonString);
 
 
-        StringBuilder imports = new StringBuilder();
-        imports.append("import com.fasterxml.jackson.annotation.JsonProperty;\n\n");
+        Set<String> imports = new HashSet<String>();
+        imports.add("import com.fasterxml.jackson.annotation.JsonProperty;\n\n");
 
         StringBuilder fields = new StringBuilder();
         for (String key : rootJO.keySet()) {
@@ -140,14 +146,29 @@ public class JacksonGenerator extends AnAction {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
             @Override
             public void run() {
-                directory.add(file);
+                int replaceIfExist = -1;
+                if (directory.findFile(file.getName()) != null) {
+                    //1 - NO, 0 - YES
+                    replaceIfExist = Messages.showYesNoDialog("File " + file.getName() + " already exists! \nDo you want to delete it and replace by the generated file?", "File " + file.getName() + " already exists!", Messages.getWarningIcon());
+                }
+                switch (replaceIfExist){
+                    case -1:
+                        directory.add(file);
+                        break;
+                    case 0:
+                        directory.findFile(file.getName()).delete();
+                        directory.add(file);
+                        break;
+                    default:
+                        break;
+                }
 
             }
         });
     }
 
-    private void generateJsonArrayFieldAndCreateNewItemClassIfNeeded(Project project, String packageName, PsiDirectory directory, JSONObject rootJO, StringBuilder imports, StringBuilder fields, String key) {
-        imports.append("import import java.util.List;\n");
+    private void generateJsonArrayFieldAndCreateNewItemClassIfNeeded(Project project, String packageName, PsiDirectory directory, JSONObject rootJO, Set<String> imports, StringBuilder fields, String key) {
+        imports.add("import import java.util.List;\n");
 
 
         JSONArray array = rootJO.getJSONArray(key);
