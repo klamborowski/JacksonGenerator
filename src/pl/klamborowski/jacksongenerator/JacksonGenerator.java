@@ -47,7 +47,7 @@ public class JacksonGenerator extends AnAction {
                     }
                 });
 
-        if(mainJacksonClassName == null || mainJacksonClassName.length() == 0){
+        if (mainJacksonClassName == null || mainJacksonClassName.length() == 0) {
             return;
         }
 
@@ -55,7 +55,7 @@ public class JacksonGenerator extends AnAction {
                 Messages.getInformationIcon(), "", new InputValidator() {
                     @Override
                     public boolean checkInput(String s) {
-                        return  s.length() > 0;
+                        return s.length() > 0;
                     }
 
                     @Override
@@ -65,7 +65,7 @@ public class JacksonGenerator extends AnAction {
                 });
 
 
-        if(jsonString == null || jsonString.length() == 0){
+        if (jsonString == null || jsonString.length() == 0) {
             return;
         }
 
@@ -113,42 +113,7 @@ public class JacksonGenerator extends AnAction {
                 if (JSONArray.class.equals(type)) {
 
 
-                    imports.append("import import java.util.List;\n");
-
-
-                    JSONArray array = rootJO.getJSONArray(key);
-                    Object arrayItem = null;
-                    if (array.length() > 0) {
-                        arrayItem = array.get(0);
-                    }
-
-                    StringBuilder fieldTypeString = new StringBuilder("List");
-
-                    if (arrayItem != null) {
-                        if (JSONObject.class.equals(arrayItem.getClass())) {
-                            String internalClassName = createClassName(key) + "Item";
-                            generateFiles(project, arrayItem.toString(), internalClassName, packageName, directory);
-                        } else {
-                            String[] classArray = arrayItem.getClass().getName().split("\\.");
-                            fieldTypeString.append("<")
-                                    .append(classArray[classArray.length - 1])
-                                    .append(">");
-                        }
-                    }
-
-
-                    fields
-                            .append("\t@JsonProperty(\"")
-                            .append(key)
-                            .append("\")")
-                            .append("\n")
-
-                            .append("\tprivate ")
-                            .append(fieldTypeString.toString())
-                            .append(" ")
-                            .append(createFieldName(key))
-                            .append(";")
-                            .append("\n");
+                    generateJsonArrayFieldAndCreateNewItemClassIfNeeded(project, packageName, directory, rootJO, imports, fields, key);
 
                 } else {
                     generateField(fields, key, type);
@@ -179,6 +144,45 @@ public class JacksonGenerator extends AnAction {
 
             }
         });
+    }
+
+    private void generateJsonArrayFieldAndCreateNewItemClassIfNeeded(Project project, String packageName, PsiDirectory directory, JSONObject rootJO, StringBuilder imports, StringBuilder fields, String key) {
+        imports.append("import import java.util.List;\n");
+
+
+        JSONArray array = rootJO.getJSONArray(key);
+        Object arrayItem = null;
+        if (array.length() > 0) {
+            arrayItem = array.get(0);
+        }
+
+        StringBuilder fieldTypeString = new StringBuilder("List");
+
+        if (arrayItem != null) {
+            if (JSONObject.class.equals(arrayItem.getClass())) {
+                String internalClassName = createClassName(key) + "Item";
+                generateFiles(project, arrayItem.toString(), internalClassName, packageName, directory);
+            } else {
+                String[] classArray = arrayItem.getClass().getName().split("\\.");
+                fieldTypeString.append("<")
+                        .append(classArray[classArray.length - 1])
+                        .append(">");
+            }
+        }
+
+
+        fields
+                .append("\t@JsonProperty(\"")
+                .append(key)
+                .append("\")")
+                .append("\n")
+
+                .append("\tprivate ")
+                .append(fieldTypeString.toString())
+                .append(" ")
+                .append(createFieldName(key))
+                .append(";")
+                .append("\n");
     }
 
     private void generateField(StringBuilder fields, String key, Class type) {
@@ -219,9 +223,6 @@ public class JacksonGenerator extends AnAction {
         String[] splittedKey = key.split("_");
         StringBuilder name = new StringBuilder();
         for (String str : splittedKey) {
-//            char[] stringArray = str.trim().toCharArray();
-//            stringArray[0] = Character.toUpperCase(stringArray[0]);
-//            name.append(new String(stringArray));
             name.append(WordUtils.capitalize(str));
         }
 
@@ -230,7 +231,7 @@ public class JacksonGenerator extends AnAction {
 
 
     private String createFieldName(String key) {
-        return WordUtils.capitalize(createClassName(key));
+        return WordUtils.uncapitalize(createClassName(key));
     }
 
     @Nullable
