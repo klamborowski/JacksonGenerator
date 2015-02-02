@@ -38,7 +38,7 @@
 
   <actions>
     <!-- Add your actions here -->
-      <action id="jackson_generate" class="JacksonGenerator" text="JacksonGenerator"
+      <action id="jackson_generate" class="pl.klamborowski.jacksongenerator.JacksonGenerator" text="JacksonGenerator"
               description="Jackson generator menu position in NewGroup">
           <add-to-group group-id="NewGroup" anchor="last"/>
       </action>
