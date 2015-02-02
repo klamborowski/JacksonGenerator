@@ -5,13 +5,13 @@
   <vendor email="support@klamborowski.pl" url="http://www.klamborowski.pl">Klamobrowski.pl</vendor>
 
   <description><![CDATA[
-      Enter short description for your plugin here.<br>
-      <em>most HTML tags may be used</em>
+      This plugin allows you to generate Jackson ready java files from provided Json formatted string.<br>
+      <!--<em>most HTML tags may be used</em>-->
     ]]></description>
 
   <change-notes><![CDATA[
-      Add change notes here.<br>
-      <em>most HTML tags may be used</em>
+      No changes, initial release.<br>
+      <!--<em>most HTML tags may be used</em>-->
     ]]>
   </change-notes>
 
