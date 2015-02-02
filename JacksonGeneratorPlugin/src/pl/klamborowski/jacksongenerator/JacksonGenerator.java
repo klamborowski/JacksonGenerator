@@ -18,7 +18,10 @@ import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import sun.util.resources.cldr.ta.CalendarData_ta_IN;
 
+import java.text.DateFormat;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,6 +40,7 @@ public class JacksonGenerator extends AnAction {
         if (project == null) {
             return;
         }
+
         String mainJacksonClassName = Messages.showInputDialog(project, "Type main class name", "Jackson Generator - Class Name",
                 Messages.getInformationIcon(), "", new InputValidator() {
                     @Override
@@ -100,10 +104,21 @@ public class JacksonGenerator extends AnAction {
     }
 
     private void generateFiles(final Project project, String jsonString, String jacksonClassName, String packageName, final PsiDirectory directory) {
-        StringBuilder body = new StringBuilder("package ")
-                .append(packageName)
-                .append(";\n")
-                .append("\n");
+        StringBuilder body = new StringBuilder();
+
+        if (packageName.length() > 0) {
+            body.append("package ")
+                    .append(packageName)
+                    .append(";\n")
+                    .append("\n");
+        }
+
+        body.append("/**\n" +
+                " * Created by JacksonGenerator on ")
+                .append(DateFormat.getDateInstance(DateFormat.SHORT).format(Calendar.getInstance().getTime()))
+                .append(".\n" +
+                        " */\n" +
+                        "\n");
         JSONObject rootJO = new JSONObject(jsonString);
 
 
@@ -128,8 +143,10 @@ public class JacksonGenerator extends AnAction {
         }
 
 
+        for (String anImport : imports) {
+            body.append(anImport);
+        }
         body
-                .append(imports.toString())
                 .append("\n")
                 .append("\n")
                 .append("public class ").append(jacksonClassName)
@@ -151,7 +168,7 @@ public class JacksonGenerator extends AnAction {
                     //1 - NO, 0 - YES
                     replaceIfExist = Messages.showYesNoDialog("File " + file.getName() + " already exists! \nDo you want to delete it and replace by the generated file?", "File " + file.getName() + " already exists!", Messages.getWarningIcon());
                 }
-                switch (replaceIfExist){
+                switch (replaceIfExist) {
                     case -1:
                         directory.add(file);
                         break;
@@ -168,7 +185,7 @@ public class JacksonGenerator extends AnAction {
     }
 
     private void generateJsonArrayFieldAndCreateNewItemClassIfNeeded(Project project, String packageName, PsiDirectory directory, JSONObject rootJO, Set<String> imports, StringBuilder fields, String key) {
-        imports.add("import import java.util.List;\n");
+        imports.add("import java.util.List;\n");
 
 
         JSONArray array = rootJO.getJSONArray(key);
@@ -241,12 +258,13 @@ public class JacksonGenerator extends AnAction {
 
 
     private String createClassName(String key) {
-        String[] splittedKey = key.split("_");
+        String[] splittedKey = key.replaceAll("\\W", "_").split("_");
         StringBuilder name = new StringBuilder();
         for (String str : splittedKey) {
-            name.append(WordUtils.capitalize(str));
+            if(str.length() >0) {
+                name.append(WordUtils.capitalize(str));
+            }
         }
-
         return name.toString();
     }
 
