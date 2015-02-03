@@ -5,7 +5,13 @@
   <vendor email="support@klamborowski.pl" url="http://www.klamborowski.pl">Klamborowski.pl</vendor>
 
   <description><![CDATA[
-      This plugin allows you to generate Jackson ready java files from provided Json formatted string.<br>
+      This plugin allows you to generate Jackson ready java files from provided Json formatted string.<br><br>
+      How to use:
+      <ul>
+        <li>Select folder from Project Window , click RMB > New > JacksonGenerator.</li>
+        <li>Enter main class name in first input dialog.</li>
+        <li>Enter json string in second input dialog.</li>
+      </ul>
       <!--<em>most HTML tags may be used</em>-->
     ]]></description>
 
