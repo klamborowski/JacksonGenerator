@@ -2,7 +2,7 @@
   <id>pl.klamborowski.plugin.jacksongenerator</id>
   <name>Jackson Generator Plugin</name>
   <version>1.0</version>
-  <vendor email="support@klamborowski.pl" url="http://www.klamborowski.pl">Klamobrowski.pl</vendor>
+  <vendor email="support@klamborowski.pl" url="http://www.klamborowski.pl">Klambrowski.pl</vendor>
 
   <description><![CDATA[
       This plugin allows you to generate Jackson ready java files from provided Json formatted string.<br>
@@ -39,7 +39,7 @@
   <actions>
     <!-- Add your actions here -->
       <action id="jackson_generate" class="pl.klamborowski.jacksongenerator.JacksonGenerator" text="JacksonGenerator"
-              description="Jackson generator menu position in NewGroup">
+              description="Generate Jackson ready java files form json">
           <add-to-group group-id="NewGroup" anchor="last"/>
       </action>
   </actions>
