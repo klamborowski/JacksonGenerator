@@ -18,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import sun.util.resources.cldr.ta.CalendarData_ta_IN;
 
 import java.text.DateFormat;
 import java.util.Calendar;
@@ -261,7 +260,7 @@ public class JacksonGenerator extends AnAction {
         String[] splittedKey = key.replaceAll("\\W", "_").split("_");
         StringBuilder name = new StringBuilder();
         for (String str : splittedKey) {
-            if(str.length() >0) {
+            if (str.length() > 0) {
                 name.append(WordUtils.capitalize(str));
             }
         }
