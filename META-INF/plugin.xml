@@ -2,7 +2,7 @@
   <id>pl.klamborowski.plugin.jacksongenerator</id>
   <name>Jackson Generator Plugin</name>
   <version>1.0.1</version>
-  <vendor email="support@klamborowski.pl" url="http://www.klamborowski.pl">Klambrowski.pl</vendor>
+  <vendor email="support@klamborowski.pl" url="http://www.klamborowski.pl">Klamborowski.pl</vendor>
 
   <description><![CDATA[
       This plugin allows you to generate Jackson ready java files from provided Json formatted string.<br>
