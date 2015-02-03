@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>pl.klamborowski.plugin.jacksongenerator</id>
   <name>Jackson Generator Plugin</name>
-  <version>1.0</version>
+  <version>1.0.1</version>
   <vendor email="support@klamborowski.pl" url="http://www.klamborowski.pl">Klambrowski.pl</vendor>
 
   <description><![CDATA[

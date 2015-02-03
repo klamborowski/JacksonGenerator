@@ -199,6 +199,9 @@ public class JacksonGenerator extends AnAction {
             if (JSONObject.class.equals(arrayItem.getClass())) {
                 String internalClassName = createClassName(key) + "Item";
                 generateFiles(project, arrayItem.toString(), internalClassName, packageName, directory);
+                fieldTypeString.append("<")
+                        .append(internalClassName)
+                        .append(">");
             } else {
                 String[] classArray = arrayItem.getClass().getName().split("\\.");
                 fieldTypeString.append("<")
