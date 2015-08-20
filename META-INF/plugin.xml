@@ -1,10 +1,10 @@
 <idea-plugin version="2">
-  <id>pl.klamborowski.plugin.jacksongenerator</id>
-  <name>Jackson Generator Plugin</name>
-  <version>1.0.1</version>
-  <vendor email="support@klamborowski.pl" url="http://www.klamborowski.pl">Klamborowski.pl</vendor>
+    <id>pl.klamborowski.plugin.jacksongenerator</id>
+    <name>Jackson Generator Plugin</name>
+    <version>1.1</version>
+    <vendor email="support@klamborowski.pl" url="http://www.klamborowski.pl">Klamborowski.pl</vendor>
 
-  <description><![CDATA[
+    <description><![CDATA[
       This plugin allows you to generate Jackson ready java files from provided Json formatted string.<br><br>
       How to use:
       <ul>
@@ -15,39 +15,44 @@
       <!--<em>most HTML tags may be used</em>-->
     ]]></description>
 
-  <change-notes><![CDATA[
-      No changes, initial release.<br>
-      <!--<em>most HTML tags may be used</em>-->
+    <change-notes><![CDATA[
+    1.1
+    <ul>
+        <li>auto rearrange and reformat generated files</li>
+        <li>can also generate ORMLite DatabaseField annotation</li>
+    </ul>
+      <br>
+    <!--<em>most HTML tags may be used</em>-->
     ]]>
-  </change-notes>
+    </change-notes>
 
-  <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
-  <idea-version since-build="131"/>
+    <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
+    <idea-version since-build="131"/>
 
-  <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
-       on how to target different products -->
-  <!-- uncomment to enable plugin in all products
-  <depends>com.intellij.modules.lang</depends>
-  -->
+    <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
+         on how to target different products -->
+    <!-- uncomment to enable plugin in all products
+    <depends>com.intellij.modules.lang</depends>
+    -->
 
-  <extensions defaultExtensionNs="com.intellij">
-    <!-- Add your extensions here -->
-  </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+    </extensions>
 
-  <application-components>
-    <!-- Add your application components here -->
-  </application-components>
+    <application-components>
+        <!-- Add your application components here -->
+    </application-components>
 
-  <project-components>
-    <!-- Add your project components here -->
-  </project-components>
+    <project-components>
+        <!-- Add your project components here -->
+    </project-components>
 
-  <actions>
-    <!-- Add your actions here -->
-      <action id="jackson_generate" class="pl.klamborowski.jacksongenerator.JacksonGenerator" text="JacksonGenerator"
-              description="Generate Jackson ready java files form json">
-          <add-to-group group-id="NewGroup" anchor="last"/>
-      </action>
-  </actions>
+    <actions>
+        <!-- Add your actions here -->
+        <action id="jackson_generate" class="pl.klamborowski.jacksongenerator.JacksonGenerator" text="JacksonGenerator"
+                description="Generate Jackson ready java files form json">
+            <add-to-group group-id="NewGroup" anchor="last"/>
+        </action>
+    </actions>
 
 </idea-plugin>

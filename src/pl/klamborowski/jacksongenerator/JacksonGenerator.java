@@ -1,5 +1,7 @@
 package pl.klamborowski.jacksongenerator;
 
+import com.intellij.codeInsight.actions.RearrangeCodeProcessor;
+import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.ide.highlighter.JavaClassFileType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -7,6 +9,7 @@ import com.intellij.openapi.actionSystem.DataConstants;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -28,6 +31,10 @@ import java.util.Set;
  * Created by artur on 2015-02-02.
  */
 public class JacksonGenerator extends AnAction {
+
+
+    private boolean addDatabaseFields = true;
+
     public void actionPerformed(AnActionEvent event) {
 
         showDialogs(event);
@@ -39,6 +46,8 @@ public class JacksonGenerator extends AnAction {
         if (project == null) {
             return;
         }
+
+
 
         String mainJacksonClassName = Messages.showInputDialog(project, "Type main class name", "Jackson Generator - Class Name",
                 Messages.getInformationIcon(), "", new InputValidator() {
@@ -57,6 +66,7 @@ public class JacksonGenerator extends AnAction {
             return;
         }
 
+
         String jsonString = Messages.showInputDialog(project, "Paste your Json string here", "Jackson Generator - Json String",
                 Messages.getInformationIcon(), "", new InputValidator() {
                     @Override
@@ -74,6 +84,9 @@ public class JacksonGenerator extends AnAction {
         if (jsonString == null || jsonString.length() == 0) {
             return;
         }
+
+        addDatabaseFields = Messages.showYesNoDialog(project, "Generate ORMLite DatabaseFiled Annotation?", "Jackson Generator - ORMLite DatabaseFiled",
+                "Yes", "No", Messages.getInformationIcon()) == 0;
 
         parseJson(event, project, mainJacksonClassName, jsonString);
     }
@@ -103,6 +116,8 @@ public class JacksonGenerator extends AnAction {
     }
 
     private void generateFiles(final Project project, String jsonString, String jacksonClassName, String packageName, final PsiDirectory directory) {
+        Set<String> columNames = new HashSet<String>();
+
         StringBuilder body = new StringBuilder();
 
         if (packageName.length() > 0) {
@@ -122,6 +137,10 @@ public class JacksonGenerator extends AnAction {
 
 
         Set<String> imports = new HashSet<String>();
+
+        if (addDatabaseFields) {
+            imports.add("import com.j256.ormlite.field.DatabaseField;");
+        }
         imports.add("import com.fasterxml.jackson.annotation.JsonProperty;\n\n");
 
         StringBuilder fields = new StringBuilder();
@@ -139,6 +158,7 @@ public class JacksonGenerator extends AnAction {
                     generateField(fields, key, type);
                 }
             }
+            columNames.add(key);
         }
 
 
@@ -150,14 +170,19 @@ public class JacksonGenerator extends AnAction {
                 .append("\n")
                 .append("public class ").append(jacksonClassName)
                 .append("{\n")
-                .append(fields.toString())
+                .append(fields.toString());
+              if(addDatabaseFields){
+                  body
+                          .append("\n")
+                          .append(generateColumnsInterface(columNames))
+                          .append("\n");
+              }
+                  body
                 .append("}");
-
 
         final PsiFile file = PsiFileFactory.getInstance(project).createFileFromText(
                 jacksonClassName.endsWith(".java") ? jacksonClassName : jacksonClassName + ".java",
                 JavaClassFileType.INSTANCE, body.toString());
-
 
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
             @Override
@@ -167,17 +192,27 @@ public class JacksonGenerator extends AnAction {
                     //1 - NO, 0 - YES
                     replaceIfExist = Messages.showYesNoDialog("File " + file.getName() + " already exists! \nDo you want to delete it and replace by the generated file?", "File " + file.getName() + " already exists!", Messages.getWarningIcon());
                 }
+                PsiElement resultElement = null;
                 switch (replaceIfExist) {
                     case -1:
-                        directory.add(file);
+                        resultElement = directory.add(file);
                         break;
                     case 0:
                         directory.findFile(file.getName()).delete();
-                        directory.add(file);
+                        resultElement = directory.add(file);
                         break;
                     default:
                         break;
                 }
+
+                if(resultElement != null && resultElement instanceof PsiJavaFile) {
+
+                    RearrangeCodeProcessor rearrangeCodeProcessor = new RearrangeCodeProcessor(project, new PsiFile[]{(PsiJavaFile)resultElement}, RearrangeCodeProcessor.COMMAND_NAME, null);
+                    rearrangeCodeProcessor.run();
+                    ReformatCodeProcessor reformatCodeProcessor = new ReformatCodeProcessor(project, (PsiJavaFile)resultElement, null, false);
+                    reformatCodeProcessor.run();
+                }
+
 
             }
         });
@@ -210,13 +245,21 @@ public class JacksonGenerator extends AnAction {
             }
         }
 
-
         fields
                 .append("\t@JsonProperty(\"")
                 .append(key)
                 .append("\")")
-                .append("\n")
+                .append("\n");
 
+        if (addDatabaseFields) {
+            fields.append("\t@DatabaseField(columnName = Column.")
+                    .append(key.toUpperCase())
+                    .append(")")
+                    .append("\n");
+        }
+
+
+        fields
                 .append("\tprivate ")
                 .append(fieldTypeString.toString())
                 .append(" ")
@@ -231,9 +274,16 @@ public class JacksonGenerator extends AnAction {
                 .append("\t@JsonProperty(\"")
                 .append(key)
                 .append("\")")
-                .append("\n")
+                .append("\n");
 
-                .append("\tprivate ")
+        if (addDatabaseFields) {
+            fields.append("\t@DatabaseField(columnName = Column.")
+                    .append(key.toUpperCase())
+                    .append(")")
+                    .append("\n");
+        }
+
+        fields.append("\tprivate ")
                 .append(classArray[classArray.length - 1])
                 .append(" ")
                 .append(createFieldName(key))
@@ -247,9 +297,16 @@ public class JacksonGenerator extends AnAction {
                 .append("\t@JsonProperty(\"")
                 .append(key)
                 .append("\")")
-                .append("\n")
+                .append("\n");
 
-                .append("\tprivate ")
+        if (addDatabaseFields) {
+            fields.append("\t@DatabaseField(columnName = Column.")
+                    .append(key.toUpperCase())
+                    .append(")")
+                    .append("\n");
+        }
+
+        fields.append("\tprivate ")
                 .append(internalClassName)
                 .append(" ")
                 .append(WordUtils.uncapitalize(internalClassName))
@@ -257,7 +314,6 @@ public class JacksonGenerator extends AnAction {
                 .append("\n");
         generateFiles(project, rootJO.get(key).toString(), internalClassName, packageName, directory);
     }
-
 
     private String createClassName(String key) {
         String[] splittedKey = key.replaceAll("\\W", "_").split("_");
@@ -274,6 +330,7 @@ public class JacksonGenerator extends AnAction {
     private String createFieldName(String key) {
         return WordUtils.uncapitalize(createClassName(key));
     }
+
 
     @Nullable
     public static PsiPackage findTargetPackage(PsiDirectory directory) {
@@ -312,4 +369,23 @@ public class JacksonGenerator extends AnAction {
         }
         return parent;
     } // createPackage()
+
+    private String generateColumnsInterface(Set<String> columNames) {
+        StringBuilder interfaceBuilder = new StringBuilder();
+        interfaceBuilder
+                .append("\tpublic interface Column {")
+                .append("\n");
+        for (String columName : columNames) {
+            interfaceBuilder
+                    .append("\t\tString ")
+                    .append(columName.toUpperCase())
+                    .append(" = \"")
+                    .append(columName.toUpperCase())
+                    .append("\";")
+                    .append("\n");
+        }
+        interfaceBuilder
+                .append("\n\t}");
+        return interfaceBuilder.toString();
+    }
 }
