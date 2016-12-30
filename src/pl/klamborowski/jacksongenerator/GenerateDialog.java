@@ -1,6 +1,7 @@
 package pl.klamborowski.jacksongenerator;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.*;
 
 public class GenerateDialog extends JDialog {
@@ -59,10 +60,17 @@ public class GenerateDialog extends JDialog {
     public static void show(OnDialogCloseListener onDialogCloseListener) {
         GenerateDialog dialog = new GenerateDialog();
         dialog.setOnDialogCloseListener(onDialogCloseListener);
-        dialog.setLocationRelativeTo(null);
         dialog.pack();
+        dialog.setLocation(getStartLocation(dialog));
         dialog.setVisible(true);
 
+    }
+
+    private static Point getStartLocation(GenerateDialog dialog) {
+        Point centerPoint = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
+        centerPoint.x -= dialog.getWidth() / 2;
+        centerPoint.y -= dialog.getHeight() / 2;
+        return centerPoint;
     }
 
     private void onOK(ActionEvent event) {
