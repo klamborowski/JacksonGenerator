@@ -88,7 +88,7 @@
               <text value="Paste your Json string here"/>
             </properties>
           </component>
-          <scrollpane id="3fd93">
+          <scrollpane id="3fd93" binding="scrollPane" custom-create="true">
             <constraints>
               <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
                 <preferred-size width="708" height="100"/>
@@ -98,17 +98,7 @@
               <minimumSize width="18" height="100"/>
             </properties>
             <border type="none"/>
-            <children>
-              <component id="b7284" class="javax.swing.JTextArea" binding="jsonStringTextArea">
-                <constraints/>
-                <properties>
-                  <minimumSize width="0" height="100"/>
-                  <preferredSize width="0" height="100"/>
-                  <requestFocusEnabled value="false"/>
-                  <rows value="0"/>
-                </properties>
-              </component>
-            </children>
+            <children/>
           </scrollpane>
           <component id="52ee0" class="javax.swing.JCheckBox" binding="generateORMLiteDatabaseFiledAnnotationCheckBox" default-binding="true">
             <constraints>

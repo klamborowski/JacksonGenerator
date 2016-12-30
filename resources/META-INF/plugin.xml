@@ -1,7 +1,7 @@
 <idea-plugin version="3">
     <id>pl.klamborowski.plugin.jacksongenerator</id>
     <name>Jackson Generator Plugin</name>
-    <version>1.2.2</version>
+    <version>1.2.5</version>
     <vendor email="support@klamborowski.pl" url="http://www.klamborowski.pl">Klamborowski.pl</vendor>
 
     <description><![CDATA[
@@ -16,6 +16,11 @@
     ]]></description>
 
     <change-notes><![CDATA[
+    1.2.5
+    <ul>
+        <li>Dialog resize and focus fix</li>
+    </ul>
+      <br>
     1.2.2
     <ul>
         <li>Center dialog on screen</li>

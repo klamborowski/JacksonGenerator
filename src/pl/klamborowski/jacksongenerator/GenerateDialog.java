@@ -10,10 +10,11 @@ public class GenerateDialog extends JDialog {
     private JButton buttonCancel;
     private JTextPane typeMainClassNameTextPane;
     private JTextPane pasteYourJsonStringTextPane;
-    private JTextArea jsonStringTextArea;
     private JCheckBox generateORMLiteDatabaseFiledAnnotationCheckBox;
     private JTextField mainClassNameTextField;
+    private JScrollPane scrollPane;
     private OnDialogCloseListener onDialogCloseListener;
+    private JTextArea textArea;
 
 
     public GenerateDialog() {
@@ -47,6 +48,7 @@ public class GenerateDialog extends JDialog {
                 onCancel();
             }
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
     }
 
     // not used, instead use show
@@ -76,7 +78,7 @@ public class GenerateDialog extends JDialog {
     private void onOK(ActionEvent event) {
         if (onDialogCloseListener != null) {
             onDialogCloseListener.onDialogClose(mainClassNameTextField.getText(),
-                    jsonStringTextArea.getText(),
+                    textArea.getText(),
                     generateORMLiteDatabaseFiledAnnotationCheckBox.isSelected());
         }
         dispose();
@@ -89,5 +91,19 @@ public class GenerateDialog extends JDialog {
 
     public void setOnDialogCloseListener(OnDialogCloseListener onDialogCloseListener) {
         this.onDialogCloseListener = onDialogCloseListener;
+    }
+
+    private void createUIComponents() {
+        textArea = new JTextArea();
+//        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
+//        textArea.setCodeFoldingEnabled(true);
+        scrollPane = new JScrollPane(textArea);
+//        try {
+//            Theme theme = Theme.load(getClass().getResourceAsStream(
+//                    "/org/fife/ui/rsyntaxtextarea/themes/monokai.xml"));
+//            theme.apply(textArea);
+//        } catch (IOException ioe) {
+//            ioe.printStackTrace();
+//        }
     }
 }
