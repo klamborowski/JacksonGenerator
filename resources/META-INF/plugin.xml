@@ -1,21 +1,27 @@
-<idea-plugin version="2">
+<idea-plugin version="3">
     <id>pl.klamborowski.plugin.jacksongenerator</id>
     <name>Jackson Generator Plugin</name>
-    <version>1.1</version>
+    <version>1.2</version>
     <vendor email="support@klamborowski.pl" url="http://www.klamborowski.pl">Klamborowski.pl</vendor>
 
     <description><![CDATA[
       This plugin allows you to generate Jackson ready java files from provided Json formatted string.<br><br>
       How to use:
       <ul>
-        <li>Select folder from Project Window , click RMB > New > JacksonGenerator.</li>
-        <li>Enter main class name in first input dialog.</li>
-        <li>Enter json string in second input dialog.</li>
+        <li>Select folder from Project Window , click RMB (right mouse button) > New > JacksonGenerator.</li>
+        <li>Enter main class name and json string in dialog.</li>
+        <li>Click OK.</li>
       </ul>
       <!--<em>most HTML tags may be used</em>-->
     ]]></description>
 
     <change-notes><![CDATA[
+    1.2
+    <ul>
+        <li>New generator dialog</li>
+        <li>bug fixes</li>
+    </ul>
+      <br>
     1.1
     <ul>
         <li>auto rearrange and reformat generated files</li>
@@ -31,9 +37,9 @@
 
     <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Plugin+Compatibility+with+IntelliJ+Platform+Products
          on how to target different products -->
-    <!-- uncomment to enable plugin in all products
-    <depends>com.intellij.modules.lang</depends>
-    -->
+    <!-- uncomment to enable plugin in all products-->
+    <depends>com.intellij.modules.java</depends>
+
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
@@ -49,9 +55,9 @@
 
     <actions>
         <!-- Add your actions here -->
-        <action id="jackson_generate" class="pl.klamborowski.jacksongenerator.JacksonGenerator" text="JacksonGenerator"
+        <action id="jackson_generate" class="pl.klamborowski.jacksongenerator.ActionHelper" text="JacksonGenerator"
                 description="Generate Jackson ready java files form json">
-            <add-to-group group-id="NewGroup" anchor="last"/>
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewPackageInfo"/>
         </action>
     </actions>
 
