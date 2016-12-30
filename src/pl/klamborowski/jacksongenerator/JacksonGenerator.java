@@ -3,14 +3,10 @@ package pl.klamborowski.jacksongenerator;
 import com.intellij.codeInsight.actions.RearrangeCodeProcessor;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.ide.highlighter.JavaClassFileType;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataConstants;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.InputValidator;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -30,70 +26,55 @@ import java.util.Set;
 /**
  * Created by artur on 2015-02-02.
  */
-public class JacksonGenerator extends AnAction {
+public class JacksonGenerator {
 
 
     private boolean addDatabaseFields = true;
 
-    public void actionPerformed(AnActionEvent event) {
-
-        showDialogs(event);
+    public JacksonGenerator(boolean addDatabaseFields) {
+        this.addDatabaseFields = addDatabaseFields;
     }
 
-    private void showDialogs(AnActionEvent event) {
+    @Nullable
+    public static PsiPackage findTargetPackage(PsiDirectory directory) {
+        PsiPackage aPackage = null;
 
-        Project project = event.getData(PlatformDataKeys.PROJECT);
-        if (project == null) {
-            return;
+        if (directory != null) {
+            aPackage = JavaDirectoryService.getInstance().getPackage(directory);
         }
+        if (aPackage == null) return null;
 
-
-
-        String mainJacksonClassName = Messages.showInputDialog(project, "Type main class name", "Jackson Generator - Class Name",
-                Messages.getInformationIcon(), "", new InputValidator() {
-                    @Override
-                    public boolean checkInput(String s) {
-                        return JavaClassNameChecker.isJavaClassName(s) && s.length() > 0;
-                    }
-
-                    @Override
-                    public boolean canClose(String s) {
-                        return checkInput(s);
-                    }
-                });
-
-        if (mainJacksonClassName == null || mainJacksonClassName.length() == 0) {
-            return;
-        }
-
-
-        String jsonString = Messages.showInputDialog(project, "Paste your Json string here", "Jackson Generator - Json String",
-                Messages.getInformationIcon(), "", new InputValidator() {
-                    @Override
-                    public boolean checkInput(String s) {
-                        return s.length() > 0;
-                    }
-
-                    @Override
-                    public boolean canClose(String s) {
-                        return checkInput(s);
-                    }
-                });
-
-
-        if (jsonString == null || jsonString.length() == 0) {
-            return;
-        }
-
-        addDatabaseFields = Messages.showYesNoDialog(project, "Generate ORMLite DatabaseFiled Annotation?", "Jackson Generator - ORMLite DatabaseFiled",
-                "Yes", "No", Messages.getInformationIcon()) == 0;
-
-        parseJson(event, project, mainJacksonClassName, jsonString);
+        return aPackage;
     }
 
+    public static PsiDirectory createDirectory(PsiDirectory parent, String name)
+            throws IncorrectOperationException {
+        PsiDirectory result = null;
+        for (PsiDirectory dir : parent.getSubdirectories()) {
+            if (dir.getName().equalsIgnoreCase(name)) {
+                result = dir;
+                break;
+            }
+        }
+        if (null == result) {
+            result = parent.createSubdirectory(name);
+        }
+        return result;
+    } // createDirectory()
 
-    private void parseJson(AnActionEvent event, Project project, String mainJacksonClassName, String jsonString) {
-        VirtualFile actionParnetDirectory = (VirtualFile) event.getDataContext().getData(DataConstants.VIRTUAL_FILE);
+    public static PsiDirectory createPackage(PsiDirectory sourceDir, String qualifiedPackage)
+            throws IncorrectOperationException {
+        PsiDirectory parent = sourceDir;
+        StringTokenizer token = new StringTokenizer(qualifiedPackage, ".");
+        while (token.hasMoreTokens()) {
+            String dirName = token.nextToken();
+            parent = createDirectory(parent, dirName);
+        }
+        return parent;
+    } // createPackage()
+
+    public void parseJson(DataContext dataContext, Project project, String mainJacksonClassName, String jsonString) {
+        VirtualFile actionParnetDirectory = (VirtualFile) dataContext.getData(DataConstants.VIRTUAL_FILE);
         if (actionParnetDirectory != null) {
             if (!project.isInitialized()) {
                 return;
@@ -150,8 +131,6 @@ public class JacksonGenerator extends AnAction {
                 generateJsonObjectFieldAndCreateNewClass(project, packageName, directory, rootJO, fields, key);
             } else {
                 if (JSONArray.class.equals(type)) {
-
-
                     generateJsonArrayFieldAndCreateNewItemClassIfNeeded(project, packageName, directory, rootJO, imports, fields, key);
 
                 } else {
@@ -184,41 +163,40 @@ public class JacksonGenerator extends AnAction {
                 jacksonClassName.endsWith(".java") ? jacksonClassName : jacksonClassName + ".java",
                 JavaClassFileType.INSTANCE, body.toString());
 
-        ApplicationManager.getApplication().runWriteAction(new Runnable() {
-            @Override
-            public void run() {
-                int replaceIfExist = -1;
-                if (directory.findFile(file.getName()) != null) {
-                    //1 - NO, 0 - YES
-                    replaceIfExist = Messages.showYesNoDialog("File " + file.getName() + " already exists! \nDo you want to delete it and replace by the generated file?", "File " + file.getName() + " already exists!", Messages.getWarningIcon());
-                }
-                PsiElement resultElement = null;
-                switch (replaceIfExist) {
-                    case -1:
-                        resultElement = directory.add(file);
-                        break;
-                    case 0:
-                        directory.findFile(file.getName()).delete();
-                        resultElement = directory.add(file);
-                        break;
-                    default:
-                        break;
-                }
-
-                if(resultElement != null && resultElement instanceof PsiJavaFile) {
-
-                    RearrangeCodeProcessor rearrangeCodeProcessor = new RearrangeCodeProcessor(project, new PsiFile[]{(PsiJavaFile)resultElement}, RearrangeCodeProcessor.COMMAND_NAME, null);
-                    rearrangeCodeProcessor.run();
-                    ReformatCodeProcessor reformatCodeProcessor = new ReformatCodeProcessor(project, (PsiJavaFile)resultElement, null, false);
-                    reformatCodeProcessor.run();
-                }
-
-
+        WriteCommandAction.runWriteCommandAction(project, () -> {
+            int replaceIfExist = -1;
+            if (directory.findFile(file.getName()) != null) {
+                //1 - NO, 0 - YES
+                replaceIfExist = Messages.showYesNoDialog("File " + file.getName() + " already exists! \nDo you want to delete it and replace by the generated file?", "File " + file.getName() + " already exists!", Messages.getWarningIcon());
             }
+            PsiElement resultElement = null;
+            switch (replaceIfExist) {
+                case -1:
+                    resultElement = directory.add(file);
+                    break;
+                case 0:
+                    directory.findFile(file.getName()).delete();
+                    resultElement = directory.add(file);
+                    break;
+                default:
+                    break;
+            }
+
+            if (resultElement != null && resultElement instanceof PsiJavaFile) {
+
+                RearrangeCodeProcessor rearrangeCodeProcessor = new RearrangeCodeProcessor(project, new PsiFile[]{(PsiJavaFile) resultElement},
+                        RearrangeCodeProcessor.COMMAND_NAME, null);
+                rearrangeCodeProcessor.run();
+                ReformatCodeProcessor reformatCodeProcessor = new ReformatCodeProcessor(project, (PsiJavaFile) resultElement, null, false);
+                reformatCodeProcessor.run();
+            }
+
+
         });
     }
 
-    private void generateJsonArrayFieldAndCreateNewItemClassIfNeeded(Project project, String packageName, PsiDirectory directory, JSONObject rootJO, Set<String> imports, StringBuilder fields, String key) {
+    private void generateJsonArrayFieldAndCreateNewItemClassIfNeeded(Project project, String packageName, PsiDirectory directory,
+                                                                     JSONObject rootJO, Set<String> imports, StringBuilder fields, String key) {
         imports.add("import java.util.List;\n");
 
 
@@ -326,49 +304,9 @@ public class JacksonGenerator extends AnAction {
         return name.toString();
     }
 
-
     private String createFieldName(String key) {
         return WordUtils.uncapitalize(createClassName(key));
     }
-
-
-    @Nullable
-    public static PsiPackage findTargetPackage(PsiDirectory directory) {
-        PsiPackage aPackage = null;
-
-        if (directory != null) {
-            aPackage = JavaDirectoryService.getInstance().getPackage(directory);
-        }
-        if (aPackage == null) return null;
-
-        return aPackage;
-    }
-
-    public static PsiDirectory createDirectory(PsiDirectory parent, String name)
-            throws IncorrectOperationException {
-        PsiDirectory result = null;
-        for (PsiDirectory dir : parent.getSubdirectories()) {
-            if (dir.getName().equalsIgnoreCase(name)) {
-                result = dir;
-                break;
-            }
-        }
-        if (null == result) {
-            result = parent.createSubdirectory(name);
-        }
-        return result;
-    } // createDirectory()
-
-    public static PsiDirectory createPackage(PsiDirectory sourceDir, String qualifiedPackage)
-            throws IncorrectOperationException {
-        PsiDirectory parent = sourceDir;
-        StringTokenizer token = new StringTokenizer(qualifiedPackage, ".");
-        while (token.hasMoreTokens()) {
-            String dirName = token.nextToken();
-            parent = createDirectory(parent, dirName);
-        }
-        return parent;
-    } // createPackage()
 
     private String generateColumnsInterface(Set<String> columNames) {
         StringBuilder interfaceBuilder = new StringBuilder();
